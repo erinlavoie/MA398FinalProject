@@ -65,9 +65,10 @@ class DisplayApp(tk.Tk):
 
     def sign_in(self):
         l = dialogs.Login(self, title="Login")
-        self.username = l.name
-        self.user = nw.User(self)
-        self.add_button.config(state=tk.ACTIVE)
+        if l.name != "":
+            self.username = l.name
+            self.user = nw.User(self)
+            self.add_button.config(state=tk.ACTIVE)
 
     def build_menus(self):
 
@@ -146,38 +147,44 @@ class DisplayApp(tk.Tk):
     def new_contact(self, event=None):
         box = dialogs.NewContact(self, title="New Contact")
 
-        self.name_to_ip[box.name] = box.ip
-        self.ip_to_name[box.ip] = box.name
+        if box.name != "":
+            self.name_to_ip[box.name] = box.ip
+            self.ip_to_name[box.ip] = box.name
 
-        conversation_frame = displays.TextDisplay(self.display_container, self)
-        conversation_frame.grid(row=0, column=0, sticky="nsew")
+            conversation_frame = displays.TextDisplay(self.display_container, self)
+            conversation_frame.grid(row=0, column=0, sticky="nsew")
 
-        self.conversation_displays[box.name] = conversation_frame
+            self.conversation_displays[box.name] = conversation_frame
 
-        self.curr_display = conversation_frame
+            self.curr_display = conversation_frame
 
-        self.curr_display.get_input().config(state=tk.NORMAL)
-        self.curr_display.get_button().config(command=self.handle_send, state=tk.ACTIVE)
+            self.curr_display.get_input().config(state=tk.NORMAL)
+            self.curr_display.get_button().config(command=self.handle_send, state=tk.ACTIVE)
 
-        self.curr_display.tkraise()
+            self.curr_display.tkraise()
 
-        self.curr_contact = box.name
+            self.curr_contact = box.name
 
-        self.user.contact_new_contact(box.ip)
-        self.update_conversation_box([self.curr_contact])
+            self.user.contact_new_contact(box.ip)
+            self.update_conversation_box([self.curr_contact])
 
         return
 
     def new_contact2(self, ip):
         box = dialogs.ContactedBy(self, title="New Contact", ip=ip)
 
-        self.name_to_ip[box.name] = ip
-        self.ip_to_name[ip] = box.name
+        if box.name != "":
+            name = box.name
+        else:
+            name = ip
+
+        self.name_to_ip[name] = ip
+        self.ip_to_name[ip] = name
 
         conversation_frame = displays.TextDisplay(self.display_container, self)
         conversation_frame.grid(row=0, column=0, sticky="nsew")
 
-        self.conversation_displays[box.name] = conversation_frame
+        self.conversation_displays[name] = conversation_frame
 
         self.curr_display = conversation_frame
 
@@ -186,7 +193,7 @@ class DisplayApp(tk.Tk):
 
         self.curr_display.tkraise()
 
-        self.curr_contact = box.name
+        self.curr_contact = name
         self.update_conversation_box([self.curr_contact])
 
         return

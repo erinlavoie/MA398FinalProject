@@ -46,7 +46,7 @@ class User:
             key = self.contacts.get(client_address)
             dec = aes.decrypt(key, message)
 
-            print("Decrypted message reads: " + message)
+            print("Decrypted message reads: " + str(message))
             self.controller.display_message(dec, client_address)
 
     def contact_new_contact(self, client_address):

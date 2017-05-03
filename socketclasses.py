@@ -3,68 +3,99 @@
 # socketclasses.py
 
 import socket as s
+from Crypto.PublicKey import RSA
 import threading
-
-class Client:
-    def __init__(self, dest_server_name, dest_server_port=12000):
-        self.dest_server_name = dest_server_name
-        self.dest_server_port = dest_server_port
-        self.client_socket = s.socket(s.AF_INET, s.SOCK_DGRAM)
-        #self.establish_connection()
-
-    def establish_connection(self):
-        print("Establishing connection")
-        self.client_socket.sendto('HELLO'.encode(), (self.dest_server_name, self.dest_server_port))
-        response = self.client_socket.recvfrom(2048)
-        if response[0].decode() == 'ACK':
-            print("Connection established")
-        else:
-            print("Connection failed")
-
-    def send_message(self, message):
-        self.client_socket.sendto(message.encode(), (self.dest_server_name, self.dest_server_port))
-        #print(message)
-
-
-class Server:
-    def __init__(self, server_port=12000):
-        print("Setting up server")
-        self.server_port = server_port
-        self.server_socket = s.socket(s.AF_INET, s.SOCK_DGRAM)
-        self.server_socket.bind(('', self.server_port))
-        self.ACK = 'ACK'.encode()
-
-    def receive_message(self):
-        message, client_address = self.server_socket.recvfrom(2048)
-        return message, client_address
+import AESCipher as aes
+import pickle
 
 class User:
-    def __init__(self, controller, dst_server_name='localhost', server_port=12000, dst_server_port=12000):
+    def __init__(self, controller, server_port=9019):
+        self.port = server_port
+
+        self.receiver = s.socket(s.AF_INET, s.SOCK_DGRAM)
+        self.receiver.bind(("", self.port))
+
+        self.sender = s.socket(s.AF_INET, s.SOCK_DGRAM)
+
+        self.contacts = {}
+        self.rsa = RSA.generate(2048)
         self.controller = controller
-        self.message = ""
+        threading_receive_message = threading.Thread(target=self.receive_message)
+        threading_receive_message.start()
 
-        # init local server
-        self.server = Server(server_port)
-        # set up message listener thread
-        thread_recieve_message = threading.Thread(target=self.receive_message)
-        thread_recieve_message.start()
+    def process_message(self, message, client_address):
+        print("process message: ")
+        print(message)
+        if message == "":
+            return
+        elif self.contacts.get(client_address) is None:
+            print("here")
+            print(client_address)
+            key = self.rsa.decrypt(message)
+            self.contacts[client_address] = key
+            print(key)
+        else:
+            key = self.contacts.get(client_address)
+            dec = aes.decrypt(key, message)
 
-        # init client
-        self.client = Client(dst_server_name, dst_server_port)
-        # set up message sender thread
-        thread_send_message = threading.Thread(target=self.send_message)
-        thread_send_message.start()
+            self.controller.display_message(dec, client_address)
 
-    def set_message(self, message):
-        self.message = message
+    def contact_new_contact(self, client_address):
+        my_pub = self.rsa.publickey()
+        self.contacts[client_address] = None
+        self.sender.sendto(pickle.dumps(my_pub), (client_address, self.port))
+        #self.send_message(client_address, pickle.dumps(my_pub))
 
-    def send_message(self):
-        while True:
-            self.client.send_message(self.message)
-            self.message = ""
+    def process_new_contact(self, message, client_address):
+        client_pub = pickle.loads(message)
+        key = aes.get_random_key()
+        print("KEY: ")
+        print(key)
+        self.contacts[client_address] = key
+
+        enc_key = client_pub.encrypt(key, 32)[0]
+
+        self.sender.sendto(enc_key, (client_address, self.port))
+
+        #self.send_message(client_address, enc_key)
+
+        self.controller.new_contact(client_address)
 
     def receive_message(self):
-        print("Now ready to recieve messages")
         while True:
-            message, client_address = self.server.receive_message()
-            self.controller.handle_receive(self, message.decode())
+            message, client_address = self.receiver.recvfrom(2048)
+            ip = client_address[0]
+
+            if ip in self.contacts:
+                self.process_message(message, ip)
+            else:
+                self.process_new_contact(message, ip)
+
+    def send_message(self, contact, message):
+
+        print(message)
+
+        key = self.contacts.get(contact)
+        print(self.contacts)
+        enc = aes.encrypt(key, message)
+
+        self.sender.sendto(enc, (contact, self.port))
+
+class Controller:
+    def __init__(self):
+        self.id = "controller tester"
+
+    def new_contact(self, contact):
+        print("new contact: " + contact)
+
+    def display_message(self, message):
+        print("message recieved: " + message)
+
+
+def main():
+    tester = User(Controller())
+    tester.contact_new_contact("127.0.0.1")
+    tester.send_message("127.0.0.1", "Hello World")
+
+if __name__=="__main__":
+    main()

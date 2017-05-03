@@ -99,15 +99,13 @@ class Controller:
     def display_message(self, message):
         print("message recieved: " + message)
 
-    def new_contact2(self, contact):
-        print("new contact2: " + contact)
-
 
 def main():
     tester = User(Controller())
-    #tester.contact_new_contact("137.146.127.19")
-    # time.sleep(30)
-    # tester.send_message("137.146.140.49", "PLZ WORK")
+    tester.contact_new_contact("137.146.126.218")
+    time.sleep(30)
+    tester.send_message("137.146.140.49", "PLZ WORK")
+    #tester2.send_message("127.0.0.1", "Hello World")
 
 
 

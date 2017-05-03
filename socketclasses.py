@@ -11,7 +11,7 @@ import time
 
 
 class User:
-    def __init__(self, controller, server_port=12118):
+    def __init__(self, controller, server_port=12000):
         self.port = server_port
 
         self.receiver = s.socket(s.AF_INET, s.SOCK_DGRAM)

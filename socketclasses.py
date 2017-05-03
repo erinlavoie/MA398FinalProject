@@ -98,6 +98,9 @@ class Controller:
     def display_message(self, message):
         print("message recieved: " + message)
 
+    def new_contact2(self, contact):
+        print("new contact2: " + contact)
+
 
 def main():
     tester = User(Controller())

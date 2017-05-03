@@ -22,6 +22,7 @@ class User:
         self.contacts = {}
         self.rsa = RSA.generate(2048)
         self.controller = controller
+
         threading_receive_message = threading.Thread(target=self.receive_message)
         threading_receive_message.start()
 
@@ -36,16 +37,16 @@ class User:
             return
 
         elif self.contacts.get(client_address) is None:
-            print("client address was none")
+            print("Contact has responded to our request!")
             key = self.rsa.decrypt(message)
-            print("decrypted key, plz don't be none: " + type(key))
             self.contacts[client_address] = key
 
         else:
-            print("We are here when we shouldn't be here")
+            print("Received an encrypted message from " + client_address + ": " + str(message))
             key = self.contacts.get(client_address)
             dec = aes.decrypt(key, message)
 
+            print("Decrypted message reads: " + message)
             self.controller.display_message(dec, client_address)
 
     def contact_new_contact(self, client_address):
@@ -55,17 +56,19 @@ class User:
         self.sender.sendto(pickle.dumps(my_pub), (client_address, self.port))
 
     def process_new_contact(self, message, client_address):
-        print("processing a new contact: " + client_address)
+        print("User " + client_address + " is requesting a conversation")
         client_pub = pickle.loads(message)
-        print(type(client_pub))
-        print("generating a random key")
+
+        print("Generating a random key for AES")
         key = aes.get_random_key()
         print("key: " + str(key))
-        self.contacts[client_address] = key
-        print("populating contacts.")
-        enc_key = client_pub.encrypt(key, 32)[0]
-        print(enc_key)
 
+        self.contacts[client_address] = key
+        print("Adding user " + client_address + " to contacts.")
+        enc_key = client_pub.encrypt(key, 32)[0]
+        print("Encrypting key with user's public key.")
+
+        print("Sending encrypted key to user.")
         self.sender.sendto(enc_key, (client_address, self.port))
 
         self.controller.new_contact2(client_address)
@@ -73,30 +76,29 @@ class User:
     def receive_message(self):
         while True:
             message, client_address = self.receiver.recvfrom(2048)
-            print(client_address)
-            print(self.contacts)
+            print("Receiving message from contact " + client_address[0] + ".")
             ip = client_address[0]
             if message == "":
                 continue
             print(str(ip) + "'s message: " + str(message) + " was received")
-            if ip in self.contacts: #and type(pickle.loads(message)) is not 'Crypto.PublicKey.RSA._RSAobj':
+            if ip in self.contacts:
                 self.process_message(message, ip)
             else:
                 self.process_new_contact(message, ip)
 
     def send_message(self, contact, message):
-        print("sending message .... ")
-        print(self.contacts.get(contact))
-        print(self.contacts)
-        print(contact)
+        print("sending message " + message + " to contact " + contact + ".")
+
         if self.contacts.get(contact) is not None:
             key = self.contacts.get(contact)
 
             enc = aes.encrypt(key, message)
 
             self.sender.sendto(enc, (contact, self.port))
+        else:
+            print("Unable to send message: AES key was not established successfully.")
 
-class Controller:
+class TestController:
     def __init__(self):
         self.id = "controller tester"
 
@@ -111,13 +113,10 @@ class Controller:
 
 
 def main():
-    tester = User(Controller())
-    # tester.contact_new_contact("137.146.126.218")
-    # time.sleep(30)
-    # tester.send_message("137.146.140.49", "PLZ WORK")
-    #tester2.send_message("127.0.0.1", "Hello World")
-
-
+    tester = User(TestController())
+    tester.contact_new_contact("137.146.127.19")
+    time.sleep(10)
+    tester.send_message("137.146.127.19", "Hello World")
 
 if __name__=="__main__":
     main()

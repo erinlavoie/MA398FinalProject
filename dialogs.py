@@ -115,10 +115,33 @@ class NewContact(Dialog):
         self.e2.grid(row=1, column=1)
 
     def apply(self):
-        self.ip = int(self.e1.get())
+        self.ip = self.e1.get()
         self.name = self.e2.get()
 
         return self.ip
+
+class ContactedBy(Dialog):
+
+    def __init__(self, parent, title=None, ip=""):
+        self.e2 = None
+        self.ip = ip
+        self.name = ""
+        Dialog.__init__(self, parent, title)
+
+    def body(self, master):
+
+        tk.Label(master, text="A user at address " + self.ip + " is trying to contact you.").grid(row=0)
+
+        tk.Label(master, text="Enter a Contact Name: ").grid(row=1)
+
+        self.e2 = tk.Entry(master)
+        self.e2.grid(row=1, column=1)
+
+    def apply(self):
+        self.name = self.e2.get()
+
+        return self.name
+
 
 class Login(Dialog):
 
@@ -131,10 +154,10 @@ class Login(Dialog):
 
     def body(self, master):
 
-        tk.Label(master, text="IP Address: ").grid(row=0)
-
-        self.e1 = tk.Entry(master)
-        self.e1.grid(row=0, column=1)
+        # tk.Label(master, text="IP Address: ").grid(row=0)
+        #
+        # self.e1 = tk.Entry(master)
+        # self.e1.grid(row=0, column=1)
 
         tk.Label(master, text="Username: ").grid(row=1)
 
@@ -142,7 +165,7 @@ class Login(Dialog):
         self.e2.grid(row=1, column=1)
 
     def apply(self):
-        self.ip = self.e1.get()
+        # self.ip = self.e1.get()
         self.name = self.e2.get()
 
         return self.ip

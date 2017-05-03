@@ -35,12 +35,9 @@ class TextDisplay(tk.Frame):
     def get_button(self):
         return self.enter_button
 
-    def display_message(self, message, tag):
-        if tag == "USER":
-            name = self.username
-        else:
-            name = self.contactname
+    def display_message(self, user, message, tag):
+
         self.text_display.config(state=tk.NORMAL)
-        self.text_display.insert(tk.END, name, tag)
+        self.text_display.insert(tk.END, user, tag)
         self.text_display.insert(tk.END, ": " + message)
         self.text_display.config(state=tk.DISABLED)

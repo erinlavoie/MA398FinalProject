@@ -25,6 +25,9 @@ class User:
         threading_receive_message = threading.Thread(target=self.receive_message)
         threading_receive_message.start()
 
+    def reset_keys(self):
+        self.rsa = RSA.generate(2048)
+
     def process_message(self, message, client_address):
 
         print("processing message < " + str(message) + " > from " + client_address)
@@ -61,7 +64,7 @@ class User:
 
         self.sender.sendto(enc_key, (client_address, self.port))
 
-        self.controller.new_contact(client_address)
+        self.controller.new_contact2(client_address)
 
     def receive_message(self):
         while True:

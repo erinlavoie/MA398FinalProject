@@ -81,6 +81,7 @@ class User:
                 self.process_new_contact(message, ip)
 
     def send_message(self, contact, message):
+        print(self.contacts.get(contact) + ": " + message)
         if self.contacts.get(contact) is not None:
             key = self.contacts.get(contact)
 

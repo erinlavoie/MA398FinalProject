@@ -7,9 +7,11 @@ from Crypto.PublicKey import RSA
 import threading
 import AESCipher as aes
 import pickle
+import time
+
 
 class User:
-    def __init__(self, controller, server_port=9019):
+    def __init__(self, controller, server_port=12118):
         self.port = server_port
 
         self.receiver = s.socket(s.AF_INET, s.SOCK_DGRAM)
@@ -24,16 +26,16 @@ class User:
         threading_receive_message.start()
 
     def process_message(self, message, client_address):
-        print("process message: ")
-        print(message)
+
+        print("processing message < " + str(message) + " > from " + client_address)
+
         if message == "":
             return
+
         elif self.contacts.get(client_address) is None:
-            print("here")
-            print(client_address)
             key = self.rsa.decrypt(message)
             self.contacts[client_address] = key
-            print(key)
+
         else:
             key = self.contacts.get(client_address)
             dec = aes.decrypt(key, message)
@@ -41,45 +43,47 @@ class User:
             self.controller.display_message(dec, client_address)
 
     def contact_new_contact(self, client_address):
+        print("Contacting a new contact: " + client_address)
         my_pub = self.rsa.publickey()
         self.contacts[client_address] = None
         self.sender.sendto(pickle.dumps(my_pub), (client_address, self.port))
-        #self.send_message(client_address, pickle.dumps(my_pub))
 
     def process_new_contact(self, message, client_address):
+        print("processing a new contact: " + client_address)
         client_pub = pickle.loads(message)
+        print(type(client_pub))
+        print("generating a random key")
         key = aes.get_random_key()
-        print("KEY: ")
-        print(key)
+        print("key: " + str(key))
         self.contacts[client_address] = key
-
+        print("populating contacts.")
         enc_key = client_pub.encrypt(key, 32)[0]
 
         self.sender.sendto(enc_key, (client_address, self.port))
-
-        #self.send_message(client_address, enc_key)
 
         self.controller.new_contact(client_address)
 
     def receive_message(self):
         while True:
             message, client_address = self.receiver.recvfrom(2048)
+            print(client_address)
+            print(self.contacts)
             ip = client_address[0]
-
-            if ip in self.contacts:
+            if message == "":
+                continue
+            print(str(ip) + "'s message: " + str(message) + " was received")
+            if ip in self.contacts: #and type(pickle.loads(message)) is not 'Crypto.PublicKey.RSA._RSAobj':
                 self.process_message(message, ip)
             else:
                 self.process_new_contact(message, ip)
 
     def send_message(self, contact, message):
+        if self.contacts.get(contact) is not None:
+            key = self.contacts.get(contact)
 
-        print(message)
+            enc = aes.encrypt(key, message)
 
-        key = self.contacts.get(contact)
-        print(self.contacts)
-        enc = aes.encrypt(key, message)
-
-        self.sender.sendto(enc, (contact, self.port))
+            self.sender.sendto(enc, (contact, self.port))
 
 class Controller:
     def __init__(self):
@@ -94,8 +98,12 @@ class Controller:
 
 def main():
     tester = User(Controller())
-    tester.contact_new_contact("127.0.0.1")
-    tester.send_message("127.0.0.1", "Hello World")
+    tester.contact_new_contact("137.146.140.49")
+    time.sleep(30)
+    tester.send_message("137.146.140.49", "PLZ WORK")
+    #tester2.send_message("127.0.0.1", "Hello World")
+
+
 
 if __name__=="__main__":
     main()

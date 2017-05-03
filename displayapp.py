@@ -208,12 +208,14 @@ class DisplayApp(tk.Tk):
 
     def refocus_display(self, event):
         w = event.widget
-        contactname = w.get(int(w.curselection()[0]))
-        conversation_display = self.conversation_displays.get(contactname)
-        self.curr_display = conversation_display
-        self.curr_display.tkraise()
+        ind = int(w.curselection()[0])
+        if ind < len(self.ip_to_name):
+            contactname = w.get(ind)
+            conversation_display = self.conversation_displays.get(contactname)
+            self.curr_display = conversation_display
+            self.curr_display.tkraise()
 
-        self.curr_contact = contactname
+            self.curr_contact = contactname
 
     def handle_send(self, event=None):
         message = self.curr_display.get_input().get("1.0", tk.END)

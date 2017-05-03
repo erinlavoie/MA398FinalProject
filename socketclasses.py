@@ -36,10 +36,13 @@ class User:
             return
 
         elif self.contacts.get(client_address) is None:
+            print("client address was none")
             key = self.rsa.decrypt(message)
+            print("decrypted key, plz don't be none: " + type(key))
             self.contacts[client_address] = key
 
         else:
+            print("We are here when we shouldn't be here")
             key = self.contacts.get(client_address)
             dec = aes.decrypt(key, message)
 
@@ -61,6 +64,7 @@ class User:
         self.contacts[client_address] = key
         print("populating contacts.")
         enc_key = client_pub.encrypt(key, 32)[0]
+        print(enc_key)
 
         self.sender.sendto(enc_key, (client_address, self.port))
 

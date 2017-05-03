@@ -9,7 +9,7 @@ import displays
 
 
 class DisplayApp(tk.Tk):
-    def __init__(self, width, height):
+    def __init__(self):
 
         # create root
         tk.Tk.__init__(self)
@@ -192,10 +192,11 @@ class DisplayApp(tk.Tk):
         return
 
     def reset_rsa(self, event=None):
-        self.user.refresh_keys()
+        self.user.reset_keys()
         return
 
     def handle_quit(self, event=None):
+        self.user.close()
         self.destroy()
         return
 
@@ -207,15 +208,12 @@ class DisplayApp(tk.Tk):
         self.conversation_listbox.pack()
 
     def refocus_display(self, event):
-        w = event.widget
-        ind = int(w.curselection()[0])
-        if ind < len(self.ip_to_name):
-            contactname = w.get(ind)
-            conversation_display = self.conversation_displays.get(contactname)
-            self.curr_display = conversation_display
-            self.curr_display.tkraise()
+        contactname = self.conversation_listbox.get(tk.ACTIVE)
+        self.curr_contact = contactname
+        self.title(self.curr_contact)
 
-            self.curr_contact = contactname
+        self.curr_display = self.conversation_displays.get(self.curr_contact)
+        self.curr_display.tkraise()
 
     def handle_send(self, event=None):
         message = self.curr_display.get_input().get("1.0", tk.END)
@@ -238,5 +236,5 @@ class DisplayApp(tk.Tk):
 
 
 if __name__ == "__main__":
-    dapp = DisplayApp(1000, 600)
+    dapp = DisplayApp()
     dapp.main()

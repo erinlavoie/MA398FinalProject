@@ -98,6 +98,10 @@ class User:
         else:
             print("Unable to send message: AES key was not established successfully.")
 
+    def close(self):
+        self.sender.close()
+        self.receiver.close()
+
 class TestController:
     def __init__(self):
         self.id = "controller tester"

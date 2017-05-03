@@ -101,9 +101,9 @@ class Controller:
 
 def main():
     tester = User(Controller())
-    tester.contact_new_contact("137.146.140.49")
-    time.sleep(30)
-    tester.send_message("137.146.140.49", "PLZ WORK")
+    tester.contact_new_contact("137.146.126.218")
+   # time.sleep(30)
+   # tester.send_message("137.146.140.49", "PLZ WORK")
     #tester2.send_message("127.0.0.1", "Hello World")
 
 
